@@ -6,11 +6,18 @@ class FirstPage extends StatefulWidget {
     return _FirstPage();
   }
 }
-  final databaseReference = FirebaseDatabase.instance.reference();
+
+final databaseReference = FirebaseDatabase.instance.reference();
+
+class _LoginData {
+  String name = '';
+  String phoneNumber = '';
+}
 
 class _FirstPage extends State<FirstPage> {
-  final _formKey = GlobalKey<FormState>();
+  final GlobalKey<FormState> _formKey = new GlobalKey<FormState>();
   final redColor = const Color(0XFFE44236);
+  _LoginData _data = new _LoginData();
   Widget build(BuildContext context) {
     return Form(
         key: _formKey,
@@ -26,70 +33,84 @@ class _FirstPage extends State<FirstPage> {
                 child: TextFormField(
                   decoration: const InputDecoration(
                       labelText: 'Enter Name', prefixIcon: Icon(Icons.ac_unit)),
+                      onSaved: (String value) {
+                        this._data.name = value;
+                      },
                 ),
               ),
               Padding(
                 padding: EdgeInsets.all(10),
                 child: TextFormField(
+                  validator: (value) {
+                    if (value.isEmpty) {
+                      return 'Please enter some text';
+                    }
+                    return null;
+                  },
                   decoration: const InputDecoration(
                       labelText: 'Enter Phone Number',
                       prefixIcon: Icon(Icons.phone)),
+                      onSaved: (String value) {
+                        this._data.phoneNumber = value;
+                      },
                 ),
               ),
               RaisedButton(
-                onPressed: (){
-                  createRecord();
+                onPressed: () {
+                  this.createRecord();
                 },
                 child: Text('CREATE'),
               ),
               RaisedButton(
-                onPressed: (){
+                onPressed: () {
                   getData();
                 },
                 child: Text('READ'),
               ),
               RaisedButton(
-                onPressed: (){
+                onPressed: () {
                   updateData();
                 },
                 child: Text('UPDATE'),
               ),
               RaisedButton(
-                onPressed: (){
+                onPressed: () {
                   deleteData();
                 },
                 child: Text('DELETE'),
-              )
+              ),
             ],
           ),
         ));
   }
 
-void createRecord(){
-  databaseReference.child("3").set({
-    'title': 'Mastering EJB',
-    'description': 'Programming Guide for J2EE'
-  });
-  // databaseReference.child("4").set({
-  //   'title': 'Flutter in Action',
-  //   'description': 'Complete Programming Guide to learn Flutter'
-  // });
-}
+  void createRecord() {
+    if (this._formKey.currentState.validate()) {
+      _formKey.currentState.save(); // Save our form now.
 
-void getData(){
-  databaseReference.once().then((DataSnapshot snapshot) {
-    print('Data : ${snapshot.value}');
-  });
-}
-
-void updateData(){
-    databaseReference.child('1').update({
-      'description': 'J2EE complete Reference'
+      print('Printing the login data.');
+      print('Email: ${_data.name}');
+      print('Password: ${_data.phoneNumber}');
+    }
+    databaseReference.push().set({
+      'Name': this._data.name,
+      'Phone Number': this._data.phoneNumber
     });
   }
 
-  void deleteData(){
-    databaseReference.child('1').remove();
+  void getData() {
+    databaseReference.once().then((DataSnapshot snapshot) {
+      print('Data : ${snapshot.value}');
+    });
   }
 
+  void updateData() {
+    databaseReference
+        .child('1')
+        .update({'description': 'J2EE complete Reference'});
+  }
+
+  void deleteData() {
+    databaseReference.child('1').remove();
+  }
 }
